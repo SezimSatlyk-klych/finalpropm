@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admission Chance</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            color: #333;
+            background-color: #f9f9f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4caf50;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admission Chance</h1>
+        <p id="admission-chance">Calculating...</p>
+        <button onclick="goBack()">Back to Search</button>
+    </div>
+
+    <script>
+        const API_URL = "http://165.22.92.190:8000";
+        const token = localStorage.getItem('token');
+        const master_id = localStorage.getItem('master_id');
+
+        // Проверяем наличие токена и master_id
+        if (!token || !master_id) {
+            localStorage.clear();
+            window.location.href = "login.html";
+        }
+
+        async function fetchAdmissionChance() {
+            try {
+                const response = await fetch(`${API_URL}/edu/admission_chance?master_id=${master_id}`, {
+                    method: "GET",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Auth': token, // Assuming token is sent as a Bearer token
+                    },
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        // Если ошибка авторизации, перенаправляем на страницу входа
+                        localStorage.clear();
+                        window.location.href = "login.html";
+                        return;
+                    }
+                    throw new Error("Failed to fetch admission chance");
+                }
+
+                const data = await response.json();
+                console.log(data);  // Логируем данные для проверки структуры ответа
+
+                // Проверяем, существует ли advice и выводим его
+                if (data.advice) {
+                    document.getElementById("admission-chance").textContent = data.advice;
+                } else {
+                    document.getElementById("admission-chance").textContent = "No data available.";
+                }
+
+            } catch (error) {
+                console.error("Error fetching admission chance:", error);
+                document.getElementById("admission-chance").textContent = "Failed to calculate admission chance.";
+            }
+        }
+
+        function goBack() {
+            window.location.href = "masdeg.html";
+        }
+
+        fetchAdmissionChance();
+    </script>
+</body>
+</html>
